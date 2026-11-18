@@ -89,18 +89,20 @@ function apiSubmitAdaptiveStep(payload) {
   }
 
   if (res.isFinished) {
-    var reportRes = generateFullReportWithFallback(payload.qaList, res.evaluation);
+    // タイムアウト防止のため、まず簡易レポート＋生成待ち状態で即時保存し、AIレポートは専用RPCで生成する
+    var simpleReport = buildSimpleReport(res.evaluation);
     var savedId = saveDiagnosisResult({
       qaHistory: payload.qaList,
       evaluation: res.evaluation,
-      report: reportRes.report,
-      isPending: reportRes.isPending,
-      modelUsed: reportRes.modelUsed
+      report: simpleReport,
+      isPending: true,
+      modelUsed: null
     });
     return {
       injectionDetected: false,
       isFinished: true,
-      result: buildClientResultPayload_(savedId, reportRes.isPending, res.evaluation, reportRes.report),
+      needsReportGeneration: true,
+      result: buildClientResultPayload_(savedId, true, res.evaluation, simpleReport),
       metrics: res.metrics
     };
   }
@@ -111,6 +113,26 @@ function apiSubmitAdaptiveStep(payload) {
     nextQuestion: res.nextQuestion,
     metrics: res.metrics
   };
+}
+
+/**
+ * 保存済みIDに対してAI詳細レポートを生成・更新する専用RPC（最終遷移アニメーション中に呼び出す）。
+ * @param {string} id
+ * @returns {Object}
+ */
+function apiGenerateReportById(id) {
+  var record = getDiagnosisResultById(id);
+  if (!record) {
+    throw new Error('診断結果が見つかりません。');
+  }
+  if (!record.isPending) {
+    return buildClientResultPayload_(record.id, false, record.evaluation, record.report);
+  }
+  var retry = generateFullReportWithFallback(record.qaHistory, record.evaluation);
+  if (!retry.isPending) {
+    updateReportInLog(record.id, retry.report, retry.modelUsed);
+  }
+  return buildClientResultPayload_(record.id, retry.isPending, record.evaluation, retry.report);
 }
 
 /**

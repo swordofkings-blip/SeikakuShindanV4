@@ -254,14 +254,39 @@
       animation: cardReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       animation-delay: var(--reveal-delay, 0ms);
     }
+    @keyframes qSlideIn {
+      0% { opacity: 0; transform: translateX(18px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+    .q-stage.q-enter {
+      animation: qSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
     .section-title {
       font-size: 1.02rem;
       font-weight: 700;
       color: #c4b5fd;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+    .report-body {
+      font-size: 0.95rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+    }
+    .hl-bold {
+      font-weight: 700;
+      color: #f5d0fe;
+    }
+    .hl-underline {
+      text-decoration: none;
+      border-bottom: 2px solid rgba(236, 95, 155, 0.72);
+      padding-bottom: 1px;
+    }
+    .hl-italic {
+      font-style: italic;
+      color: #a5b4fc;
     }
     .share-actions {
       display: grid;
@@ -330,14 +355,16 @@
       </div>
       <div class="progress-wrap"><div class="progress-bar" id="q-progress"></div></div>
 
-      <div id="q-image-wrap" class="q-image-wrap hidden">
-        <img id="q-image" src="" alt="質問イメージ" onload="this.parentElement.classList.remove('hidden')" onerror="this.parentElement.classList.add('hidden')">
+      <div id="q-stage" class="q-stage">
+        <div id="q-image-wrap" class="q-image-wrap hidden">
+          <img id="q-image" src="" alt="質問イメージ" onload="this.parentElement.classList.remove('hidden')" onerror="this.parentElement.classList.add('hidden')">
+        </div>
+
+        <div class="q-text" id="q-text"></div>
+
+        <div class="templates-label">回答アシスト（タップで挿入・自由に編集できます）</div>
+        <div class="template-list" id="q-templates"></div>
       </div>
-
-      <div class="q-text" id="q-text"></div>
-
-      <div class="templates-label">回答アシスト（タップで挿入・自由に編集できます）</div>
-      <div class="template-list" id="q-templates"></div>
 
       <textarea id="q-answer" placeholder="あなたの言葉や具体的なエピソードを入力してください…" oninput="onAnswerInput()"></textarea>
       <div class="input-meta">
@@ -347,6 +374,15 @@
 
       <div id="q-error" class="alert alert-danger hidden"></div>
       <button id="btn-next" class="btn btn-primary" onclick="submitCurrentAnswer()">次へ進む</button>
+    </div>
+
+    <!-- 最終レポート生成中の遷移画面 -->
+    <div id="view-generating" class="card hidden reveal-hero" style="text-align:center; padding:48px 24px;">
+      <div class="badge badge-accent" style="margin-bottom:12px;">判定完了</div>
+      <div class="type-code" id="gen-type-code" style="margin-bottom:8px;">----</div>
+      <div class="spinner" style="margin:18px auto;"></div>
+      <div id="gen-status-text" style="font-size:1rem; font-weight:600; margin-bottom:6px;">深層レポートを執筆しています…</div>
+      <div style="font-size:0.85rem; color:var(--muted);">あなたの回答エピソードと二層構造を読み解いています</div>
     </div>
 
     <!-- 結果画面 -->
@@ -474,6 +510,11 @@
       state.currentQuestion = q;
       state.selectedTemplateText = null;
       saveLocalProgress();
+
+      var stage = document.getElementById('q-stage');
+      stage.classList.remove('q-enter');
+      void stage.offsetWidth;
+      stage.classList.add('q-enter');
 
       var stepNum = state.qaList.length + 1;
       document.getElementById('q-step-badge').textContent = 'Q' + stepNum + ' / 最大' + MAX_TOTAL + '問';
@@ -608,7 +649,7 @@
     }
 
     function requestAdaptiveNext() {
-      var msg = state.qaList.length >= 7 ? '分析とレポート生成を進めています…' : '回答を分析しています…';
+      var msg = state.qaList.length >= 6 ? '判定をまとめています…' : '回答を分析しています…';
       setQuizBusy(true, msg);
 
       google.script.run
@@ -621,7 +662,11 @@
           }
           if (res.isFinished) {
             localStorage.removeItem(STORAGE_KEY);
-            renderResult(res.result);
+            if (res.needsReportGeneration) {
+              startFinalReportTransition(res.result);
+            } else {
+              renderResult(res.result);
+            }
             return;
           }
           preloadImages([res.nextQuestion]);
@@ -633,6 +678,24 @@
           showError('通信エラーが発生しました：' + (err.message || err));
         })
         .apiSubmitAdaptiveStep({ sessionId: state.sessionId, qaList: state.qaList });
+    }
+
+    function startFinalReportTransition(simpleResult) {
+      document.getElementById('view-quiz').classList.add('hidden');
+      document.getElementById('view-generating').classList.remove('hidden');
+      document.getElementById('gen-type-code').textContent = simpleResult.evaluation.mbtiType;
+
+      google.script.run
+        .withSuccessHandler(function(fullResult) {
+          document.getElementById('view-generating').classList.add('hidden');
+          renderResult(fullResult);
+        })
+        .withFailureHandler(function() {
+          // タイムアウト・通信エラー時も保存済みの簡易レポートを必ず表示する
+          document.getElementById('view-generating').classList.add('hidden');
+          renderResult(simpleResult);
+        })
+        .apiGenerateReportById(simpleResult.id);
     }
 
     function renderResult(result) {
@@ -704,15 +767,15 @@
         if (!s.body) return;
         var card = document.createElement('div');
         card.className = 'card reveal-card';
-        card.innerHTML = '<div class="section-title">' + escapeHtml(s.title) + '</div><div style="font-size:0.94rem; white-space:pre-wrap;">' + escapeHtml(s.body) + '</div>';
+        card.innerHTML = '<div class="section-title">' + escapeHtml(s.title) + '</div><div class="report-body">' + formatRichText(s.body) + '</div>';
         secWrap.appendChild(card);
       });
 
       if (rep.aruaru && rep.aruaru.length > 0) {
         var aruCard = document.createElement('div');
         aruCard.className = 'card reveal-card';
-        var items = rep.aruaru.map(function(a) { return '<li>' + escapeHtml(a) + '</li>'; }).join('');
-        aruCard.innerHTML = '<div class="section-title">日常あるある</div><ul style="margin:0; padding-left:20px; font-size:0.94rem;">' + items + '</ul>';
+        var items = rep.aruaru.map(function(a) { return '<li style="margin-bottom:6px;">' + formatRichText(a) + '</li>'; }).join('');
+        aruCard.innerHTML = '<div class="section-title">日常あるある</div><ul style="margin:0; padding-left:20px; font-size:0.95rem; line-height:1.8;">' + items + '</ul>';
         secWrap.appendChild(aruCard);
       }
 
@@ -897,6 +960,15 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function formatRichText(str) {
+      // 先にHTMLエスケープし、安全な強調記法（**太字** / __下線__ / *斜体*）のみを装飾タグへ変換する
+      var escaped = escapeHtml(str);
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="hl-bold">$1</strong>')
+        .replace(/__(.+?)__/g, '<u class="hl-underline">$1</u>')
+        .replace(/\*(.+?)\*/g, '<em class="hl-italic">$1</em>');
     }
   </script>
 </body>
