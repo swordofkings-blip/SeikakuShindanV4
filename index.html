@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeikakuShindan V4 | 深層性格診断</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #0d1017;
+      color: #eef1f8;
+      font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    .fallback-bar {
+      background: #161b26;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      color: #98a2b8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .fallback-bar a {
+      color: #c4b5fd;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .fallback-bar a:hover { text-decoration: underline; }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      display: block;
+    }
+    .setup-notice {
+      margin: auto;
+      max-width: 520px;
+      padding: 24px;
+      background: #161b26;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      text-align: center;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="fallback-bar">
+    <span>SeikakuShindan V4</span>
+    <a id="direct-link" href="#" target="_blank" rel="noopener noreferrer">画面が表示されない場合はこちらから直接開く ↗</a>
+  </div>
+
+  <iframe id="app-frame" allow="clipboard-write" title="SeikakuShindan V4"></iframe>
+
+  <div id="setup-notice" class="setup-notice" style="display:none;">
+    <h2>GAS Web アプリ URL 未設定</h2>
+    <p><code>index.html</code> 内の <code>GAS_WEBAPP_URL</code> にデプロイ済み GAS の Web アプリ URL を設定してください。</p>
+  </div>
+
+  <script>
+    // 本番 GAS デプロイ後に発行される Web アプリ URL（/exec）を設定する
+    var GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxVN1No7SdVUlX-zCBIbwvN2pUYq7WGJe0FfivjDhrQr_yb-5Thds1SJZi069E1GuHG/exec';
+
+    (function init() {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('id');
+      var frame = document.getElementById('app-frame');
+      var directLink = document.getElementById('direct-link');
+
+      if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL === 'REPLACE_WITH_GAS_WEBAPP_URL') {
+        frame.style.display = 'none';
+        directLink.style.display = 'none';
+        document.getElementById('setup-notice').style.display = 'block';
+        return;
+      }
+
+      var targetUrl = GAS_WEBAPP_URL;
+      if (id) {
+        targetUrl += (targetUrl.indexOf('?') === -1 ? '?' : '&') + 'id=' + encodeURIComponent(id);
+      }
+
+      frame.src = targetUrl;
+      directLink.href = targetUrl;
+    })();
+  </script>
+</body>
+</html>

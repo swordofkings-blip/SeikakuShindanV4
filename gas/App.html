@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>SeikakuShindan V4 | 深層性格診断</title>
+  <style>
+    :root {
+      --bg: #0d1017;
+      --surface: #161b26;
+      --surface-2: #1f2636;
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #eef1f8;
+      --muted: #98a2b8;
+      --accent: #7c6cf6;
+      --accent-2: #ec5f9b;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top right, #1d2238 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+      margin-bottom: 18px;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .badge-accent {
+      background: rgba(124, 108, 246, 0.16);
+      border-color: rgba(124, 108, 246, 0.4);
+      color: #c4b5fd;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.15s ease, background 0.15s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      width: 100%;
+    }
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .progress-wrap {
+      width: 100%;
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 18px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+    .q-image-wrap {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: var(--surface-2);
+    }
+    .q-image-wrap img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 300px;
+      object-fit: cover;
+    }
+    .q-text {
+      font-size: 1.08rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .templates-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .template-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tpl-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .tpl-btn:hover { border-color: var(--accent); }
+    .tpl-btn.active {
+      border-color: var(--accent);
+      background: rgba(124, 108, 246, 0.2);
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #0e121b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.96rem;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--accent); }
+    .input-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 8px 0 16px;
+    }
+    .alert {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+    }
+    .alert-info {
+      background: rgba(124, 108, 246, 0.14);
+      border: 1px solid rgba(124, 108, 246, 0.35);
+      color: #ddd6fe;
+    }
+    .alert-warn {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: #fde68a;
+    }
+    .alert-danger {
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+    }
+    .type-hero {
+      text-align: center;
+      padding: 12px 0 6px;
+    }
+    .type-code {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      background: linear-gradient(90deg, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 4px 0;
+    }
+    .type-label { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+    .catchcopy { color: var(--muted); font-size: 0.95rem; }
+    .axis-row { margin-bottom: 14px; }
+    .axis-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      margin-bottom: 5px;
+    }
+    .bar-bg {
+      height: 10px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+    }
+    .bar-left { background: var(--accent); height: 100%; }
+    .bar-right { background: var(--accent-2); height: 100%; }
+    .big5-fill {
+      background: linear-gradient(90deg, #34d399, #60a5fa);
+      height: 100%;
+    }
+    .section-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #c4b5fd;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .share-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 560px) {
+      .share-actions { grid-template-columns: 1fr; }
+    }
+    .hidden { display: none !important; }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer {
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 28px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-brand">
+      <div class="brand-title">SeikakuShindan V4</div>
+      <span class="badge badge-accent" id="top-badge">深層性格診断</span>
+    </div>
+
+    <!-- ロード中 -->
+    <div id="view-loading" class="card" style="text-align:center; padding:44px 24px;">
+      <div class="spinner"></div>
+      <div id="loading-text">診断を準備しています…</div>
+    </div>
+
+    <!-- スタート画面 -->
+    <div id="view-intro" class="card hidden">
+      <h2>あなたの「素の自分」と「外向きの顔」を読み解く</h2>
+      <p style="color:var(--muted); font-size:0.93rem;">
+        自由記述の質問に答えるだけで、16＋X型（81パターン）のタイプ傾向とビッグファイブ5因子を同時に分析します。
+        言葉が浮かばないときは回答テンプレートをベースに編集することもできます。
+      </p>
+      <div id="resume-box" class="alert alert-info hidden">
+        前回の途中データが残っています（<span id="resume-count"></span>問回答済み）。続きから再開できます。
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn btn-primary" style="width:auto;" onclick="resumeQuiz()">続きから再開</button>
+          <button class="btn btn-secondary" onclick="startFreshQuiz()">最初からやり直す</button>
+        </div>
+      </div>
+      <button id="btn-start" class="btn btn-primary" onclick="startFreshQuiz()">診断をはじめる（目安 8〜14問）</button>
+    </div>
+
+    <!-- 質問画面 -->
+    <div id="view-quiz" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="badge" id="q-step-badge">Q1</span>
+        <span class="badge badge-accent" id="q-scene-badge">素の自分</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="q-progress"></div></div>
+
+      <div id="q-image-wrap" class="q-image-wrap hidden">
+        <img id="q-image" src="" alt="質問イメージ" onload="this.parentElement.classList.remove('hidden')" onerror="this.parentElement.classList.add('hidden')">
+      </div>
+
+      <div class="q-text" id="q-text"></div>
+
+      <div class="templates-label">回答アシスト（タップで挿入・自由に編集できます）</div>
+      <div class="template-list" id="q-templates"></div>
+
+      <textarea id="q-answer" placeholder="あなたの言葉や具体的なエピソードを入力してください…" oninput="onAnswerInput()"></textarea>
+      <div class="input-meta">
+        <span id="q-tpl-hint">独自記述</span>
+        <span id="q-char-count">0 / 1000</span>
+      </div>
+
+      <div id="q-error" class="alert alert-danger hidden"></div>
+      <button id="btn-next" class="btn btn-primary" onclick="submitCurrentAnswer()">次へ進む</button>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="view-result" class="hidden">
+      <div id="pending-banner" class="alert alert-warn hidden">
+        本日のAIレポート生成枠が上限に達したため簡易レポートを表示しています。詳細レポートは明日生成されます（このページのURLをブックマークしておくと後から確認できます）。
+      </div>
+
+      <div class="card type-hero">
+        <div class="type-code" id="res-type-code">----</div>
+        <div class="type-label" id="res-type-label"></div>
+        <div class="catchcopy" id="res-catchcopy"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">MBTI 4軸のバランス</div>
+        <div id="res-mbti-bars"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">ビッグファイブ 5因子（0〜100）</div>
+        <div id="res-big5-bars"></div>
+      </div>
+
+      <div id="res-report-sections"></div>
+
+      <div class="card">
+        <div class="section-title">結果を保存・シェア</div>
+        <canvas id="share-canvas" width="1200" height="630" style="width:100%; border-radius:12px; border:1px solid var(--border);"></canvas>
+        <div class="share-actions">
+          <button class="btn btn-secondary" onclick="downloadShareImage()">シェア画像を保存</button>
+          <button class="btn btn-primary" onclick="shareToX()">X でシェアする</button>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <input id="res-share-url" type="text" readonly style="flex:1; background:#0e121b; color:var(--muted); border:1px solid var(--border); border-radius:10px; padding:10px; font-size:0.82rem;">
+          <button class="btn btn-secondary" onclick="copyShareUrl()">URLコピー</button>
+        </div>
+        <button class="btn btn-secondary" style="width:100%; margin-top:12px;" onclick="restartFromResult()">もう一度診断する</button>
+      </div>
+    </div>
+
+    <footer>
+      ※本診断はユングの類型論やビッグファイブ理論を参考にした独自開発の性格診断であり、公式の MBTI®（The Myers &amp; Briggs Foundation）とは一切関係ありません。
+    </footer>
+  </div>
+
+  <script>
+    var INITIAL_ID = '<?= initialId ?>';
+    var STORAGE_KEY = 'seikaku_v4_session';
+    var MAX_TOTAL = 14;
+    var MAX_LEN = 1000;
+
+    var state = {
+      sessionId: '',
+      fixedQuestions: [],
+      currentQuestion: null,
+      qaList: [],
+      selectedTemplateText: null,
+      q4Promise: null,
+      predecidedQ6: null,
+      resultData: null
+    };
+
+    window.addEventListener('DOMContentLoaded', function() {
+      google.script.run
+        .withSuccessHandler(onInitSuccess)
+        .withFailureHandler(onFatalError)
+        .apiInitSession(INITIAL_ID || '');
+    });
+
+    function onInitSuccess(res) {
+      if (res.mode === 'result') {
+        renderResult(res.result);
+        return;
+      }
+      if (res.mode === 'not_found') {
+        showLoading(false);
+        document.getElementById('view-intro').classList.remove('hidden');
+        alert(res.message);
+        return;
+      }
+
+      state.fixedQuestions = res.fixedQuestions || [];
+      MAX_TOTAL = res.maxTotalQuestions || 14;
+      MAX_LEN = res.maxAnswerLength || 1000;
+      preloadImages(state.fixedQuestions);
+
+      var saved = loadLocalProgress();
+      if (saved && saved.qaList && saved.qaList.length > 0 && saved.currentQuestion) {
+        document.getElementById('resume-count').textContent = saved.qaList.length;
+        document.getElementById('resume-box').classList.remove('hidden');
+      }
+
+      showLoading(false);
+      document.getElementById('view-intro').classList.remove('hidden');
+    }
+
+    function startFreshQuiz() {
+      localStorage.removeItem(STORAGE_KEY);
+      state.sessionId = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      state.qaList = [];
+      state.q4Promise = null;
+      state.predecidedQ6 = null;
+      document.getElementById('view-intro').classList.add('hidden');
+      document.getElementById('view-quiz').classList.remove('hidden');
+      showQuestion(state.fixedQuestions[0]);
+    }
+
+    function resumeQuiz() {
+      var saved = loadLocalProgress();
+      if (!saved) {
+        startFreshQuiz();
+        return;
+      }
+      state.sessionId = saved.sessionId;
+      state.qaList = saved.qaList;
+      state.q4Promise = null;
+      state.predecidedQ6 = null;
+      document.getElementById('view-intro').classList.add('hidden');
+      document.getElementById('view-quiz').classList.remove('hidden');
+      showQuestion(saved.currentQuestion);
+    }
+
+    function showQuestion(q) {
+      state.currentQuestion = q;
+      state.selectedTemplateText = null;
+      saveLocalProgress();
+
+      var stepNum = state.qaList.length + 1;
+      document.getElementById('q-step-badge').textContent = 'Q' + stepNum + ' / 最大' + MAX_TOTAL + '問';
+      document.getElementById('q-scene-badge').textContent = formatSceneTag(q.sceneTag);
+      document.getElementById('q-progress').style.width = Math.min(100, Math.round((stepNum / MAX_TOTAL) * 100)) + '%';
+
+      var imgWrap = document.getElementById('q-image-wrap');
+      var imgEl = document.getElementById('q-image');
+      imgWrap.classList.add('hidden');
+      imgEl.src = q.imageUrl || '';
+
+      document.getElementById('q-text').textContent = q.question;
+      var ta = document.getElementById('q-answer');
+      ta.value = '';
+      onAnswerInput();
+      hideError();
+
+      var tplWrap = document.getElementById('q-templates');
+      tplWrap.innerHTML = '';
+      (q.templates || []).forEach(function(tpl) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tpl-btn';
+        btn.textContent = tpl.label;
+        btn.onclick = function() {
+          Array.prototype.forEach.call(tplWrap.children, function(c) { c.classList.remove('active'); });
+          btn.classList.add('active');
+          ta.value = tpl.text;
+          state.selectedTemplateText = tpl.text;
+          onAnswerInput();
+        };
+        tplWrap.appendChild(btn);
+      });
+
+      setQuizBusy(false);
+    }
+
+    function onAnswerInput() {
+      var val = document.getElementById('q-answer').value;
+      var len = val.length;
+      var counter = document.getElementById('q-char-count');
+      counter.textContent = len + ' / ' + MAX_LEN;
+      counter.style.color = len > MAX_LEN ? 'var(--danger)' : 'var(--muted)';
+
+      var hint = document.getElementById('q-tpl-hint');
+      if (state.selectedTemplateText === null) {
+        hint.textContent = '独自記述';
+      } else if (val.trim() === state.selectedTemplateText.trim()) {
+        hint.textContent = 'テンプレートそのまま（少し編集すると精度が上がります）';
+      } else {
+        hint.textContent = 'テンプレートをベースに編集済み';
+      }
+    }
+
+    function submitCurrentAnswer() {
+      var raw = document.getElementById('q-answer').value.trim();
+      if (!raw) {
+        showError('回答を入力するか、上のテンプレートを選択してください。');
+        return;
+      }
+      if (raw.length > MAX_LEN) {
+        showError('回答は ' + MAX_LEN + ' 文字以内で入力してください。');
+        return;
+      }
+      hideError();
+
+      var q = state.currentQuestion;
+      var tplUsed = state.selectedTemplateText !== null;
+      var tplEdited = tplUsed && (raw !== state.selectedTemplateText.trim());
+
+      var entry = {
+        id: q.id,
+        axis: q.axis,
+        sceneTag: q.sceneTag,
+        question: q.question,
+        answer: raw,
+        templateUsed: tplUsed,
+        templateEdited: tplEdited
+      };
+      state.qaList.push(entry);
+
+      var count = state.qaList.length;
+
+      // Q1〜Q3：保存のみで即座に次の固定質問へ
+      if (count <= 3) {
+        showQuestion(state.fixedQuestions[count]);
+        return;
+      }
+
+      // Q4：裏で累積判定＋Q6先決めを開始し、即座に Q5 を表示
+      if (count === 4) {
+        var snapshot = state.qaList.slice();
+        state.q4Promise = new Promise(function(resolve, reject) {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .apiPredecideQ6({ sessionId: state.sessionId, qaList: snapshot });
+        }).then(function(res) {
+          if (res && !res.injectionDetected && res.predecidedQ6) {
+            preloadImages([res.predecidedQ6]);
+          }
+          return res;
+        });
+        showQuestion(state.fixedQuestions[4]);
+        return;
+      }
+
+      // Q5：Q4の裏Promise完了を待って直列化し、先決め済み Q6 を即表示
+      if (count === 5 && state.q4Promise) {
+        setQuizBusy(true, '次の質問を準備しています…');
+        state.q4Promise.then(function(res) {
+          if (res && res.injectionDetected) {
+            state.qaList.pop();
+            setQuizBusy(false);
+            showError('診断結果に影響する特殊な指示が含まれています。通常の言葉で入力し直してください。');
+            return;
+          }
+          if (res && res.predecidedQ6) {
+            showQuestion(res.predecidedQ6);
+            return;
+          }
+          // 先決めが取れなかった場合は通常フローへフォールバック
+          requestAdaptiveNext();
+        }).catch(function() {
+          requestAdaptiveNext();
+        });
+        return;
+      }
+
+      // Q6 以降：累積判定＋次問選択／終了時レポート生成
+      requestAdaptiveNext();
+    }
+
+    function requestAdaptiveNext() {
+      var msg = state.qaList.length >= 7 ? '分析とレポート生成を進めています…' : '回答を分析しています…';
+      setQuizBusy(true, msg);
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.injectionDetected) {
+            state.qaList.pop();
+            setQuizBusy(false);
+            showError('診断結果に影響する特殊な指示が含まれています。通常の言葉で入力し直してください。');
+            return;
+          }
+          if (res.isFinished) {
+            localStorage.removeItem(STORAGE_KEY);
+            renderResult(res.result);
+            return;
+          }
+          preloadImages([res.nextQuestion]);
+          showQuestion(res.nextQuestion);
+        })
+        .withFailureHandler(function(err) {
+          state.qaList.pop();
+          setQuizBusy(false);
+          showError('通信エラーが発生しました：' + (err.message || err));
+        })
+        .apiSubmitAdaptiveStep({ sessionId: state.sessionId, qaList: state.qaList });
+    }
+
+    function renderResult(result) {
+      state.resultData = result;
+      showLoading(false);
+      document.getElementById('view-intro').classList.add('hidden');
+      document.getElementById('view-quiz').classList.add('hidden');
+      document.getElementById('view-result').classList.remove('hidden');
+
+      if (result.isPending) {
+        document.getElementById('pending-banner').classList.remove('hidden');
+      }
+
+      var ev = result.evaluation;
+      var rep = result.report;
+
+      document.getElementById('res-type-code').textContent = ev.mbtiType;
+      document.getElementById('res-type-label').textContent = rep.typeLabel || '';
+      document.getElementById('res-catchcopy').textContent = rep.catchcopy || '';
+
+      // MBTI 4軸バー
+      var mbtiWrap = document.getElementById('res-mbti-bars');
+      mbtiWrap.innerHTML = '';
+      ['E/I', 'S/N', 'T/F', 'J/P'].forEach(function(ax) {
+        var m = ev.mbti[ax];
+        var p1 = Math.round(m.p1Prob * 100);
+        var p2 = 100 - p1;
+        var sub = m.balanceSubtype ? ' / ' + m.balanceSubtype : '';
+        var html =
+          '<div class="axis-row">' +
+            '<div class="axis-head">' +
+              '<span>' + m.p1 + ' (' + p1 + '%)</span>' +
+              '<span class="badge badge-accent">' + m.letter + '：' + m.clarity + sub + '</span>' +
+              '<span>' + m.p2 + ' (' + p2 + '%)</span>' +
+            '</div>' +
+            '<div class="bar-bg"><div class="bar-left" style="width:' + p1 + '%"></div><div class="bar-right" style="width:' + p2 + '%"></div></div>' +
+          '</div>';
+        mbtiWrap.insertAdjacentHTML('beforeend', html);
+      });
+
+      // ビッグファイブ 5因子バー
+      var big5Wrap = document.getElementById('res-big5-bars');
+      big5Wrap.innerHTML = '';
+      ['E', 'O', 'C', 'A', 'N'].forEach(function(code) {
+        var b = ev.big5[code];
+        var html =
+          '<div class="axis-row">' +
+            '<div class="axis-head"><span>' + b.label + '</span><span>' + b.score100 + ' / 100</span></div>' +
+            '<div class="bar-bg"><div class="big5-fill" style="width:' + b.score100 + '%"></div></div>' +
+          '</div>';
+        big5Wrap.insertAdjacentHTML('beforeend', html);
+      });
+
+      // レポート本文セクション
+      var sections = [
+        { title: '全体像の総括', body: rep.summary },
+        { title: 'まわりの印象 vs 本当の内側', body: rep.impressionVsInner },
+        { title: '両性質（バランス）の読み解き', body: rep.balanceAnalysis },
+        { title: '強み・輝く場面', body: rep.strengths },
+        { title: '弱み・疲れやすい場面', body: rep.weaknesses },
+        { title: '仕事スタイル', body: rep.workStyle },
+        { title: '対人関係', body: rep.relationships },
+        { title: 'ビッグファイブの読み解き', body: rep.big5Analysis },
+        { title: '成長のヒント', body: rep.growthTips }
+      ];
+      var secWrap = document.getElementById('res-report-sections');
+      secWrap.innerHTML = '';
+      sections.forEach(function(s) {
+        if (!s.body) return;
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = '<div class="section-title">' + escapeHtml(s.title) + '</div><div style="font-size:0.94rem; white-space:pre-wrap;">' + escapeHtml(s.body) + '</div>';
+        secWrap.appendChild(card);
+      });
+
+      if (rep.aruaru && rep.aruaru.length > 0) {
+        var aruCard = document.createElement('div');
+        aruCard.className = 'card';
+        var items = rep.aruaru.map(function(a) { return '<li>' + escapeHtml(a) + '</li>'; }).join('');
+        aruCard.innerHTML = '<div class="section-title">日常あるある</div><ul style="margin:0; padding-left:20px; font-size:0.94rem;">' + items + '</ul>';
+        secWrap.appendChild(aruCard);
+      }
+
+      document.getElementById('res-share-url').value = result.shareUrl;
+      drawShareCard(ev, rep);
+    }
+
+    function drawShareCard(ev, rep) {
+      var canvas = document.getElementById('share-canvas');
+      var ctx = canvas.getContext('2d');
+      var grad = ctx.createLinearGradient(0, 0, 1200, 630);
+      grad.addColorStop(0, '#121629');
+      grad.addColorStop(1, '#221738');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1200, 630);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(28, 28, 1144, 574);
+
+      ctx.fillStyle = '#a78bfa';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText('SeikakuShindan V4', 64, 84);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 112px sans-serif';
+      ctx.fillText(ev.mbtiType, 64, 215);
+
+      ctx.fillStyle = '#f472b6';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText(rep.typeLabel || '', 64, 278);
+
+      ctx.fillStyle = '#d1d5db';
+      ctx.font = '26px sans-serif';
+      ctx.fillText(rep.catchcopy || '', 64, 334);
+
+      // Big5 ミニバー
+      var codes = ['E', 'O', 'C', 'A', 'N'];
+      codes.forEach(function(c, idx) {
+        var b = ev.big5[c];
+        var y = 400 + idx * 36;
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '20px sans-serif';
+        ctx.fillText(b.label, 64, y);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(210, y - 16, 360, 16);
+        ctx.fillStyle = '#34d399';
+        ctx.fillRect(210, y - 16, Math.round(3.6 * b.score100), 16);
+        ctx.fillStyle = '#eef1f8';
+        ctx.fillText(b.score100 + '点', 585, y);
+      });
+
+      ctx.fillStyle = '#98a2b8';
+      ctx.font = '18px sans-serif';
+      ctx.fillText('※独自開発の性格診断（公式MBTI®とは無関係です）', 64, 580);
+    }
+
+    function downloadShareImage() {
+      var canvas = document.getElementById('share-canvas');
+      var link = document.createElement('a');
+      link.download = 'seikaku_v4_' + state.resultData.evaluation.mbtiType + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    function shareToX() {
+      var ev = state.resultData.evaluation;
+      var rep = state.resultData.report;
+      var text = '私の診断結果は【' + ev.mbtiType + '（' + (rep.typeLabel || '') + '）】でした！\n' + (rep.catchcopy || '') + '\n#SeikakuShindanV4';
+      var url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(state.resultData.shareUrl);
+      window.open(url, '_blank');
+    }
+
+    function copyShareUrl() {
+      var input = document.getElementById('res-share-url');
+      input.select();
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(input.value);
+      } else {
+        document.execCommand('copy');
+      }
+      alert('URLをコピーしました！');
+    }
+
+    function restartFromResult() {
+      if (window.top !== window.self) {
+        window.top.location.href = '<?= githubPagesBase ?>';
+      } else {
+        document.getElementById('view-result').classList.add('hidden');
+        startFreshQuiz();
+      }
+    }
+
+    function formatSceneTag(tag) {
+      if (tag === '素') return '場面：素の自分';
+      if (tag === '仮面') return '場面：外向きの顔';
+      return '場面：素と仮面の比較';
+    }
+
+    function preloadImages(list) {
+      (list || []).forEach(function(q) {
+        if (q && q.imageUrl) {
+          var img = new Image();
+          img.src = q.imageUrl;
+        }
+      });
+    }
+
+    function saveLocalProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          sessionId: state.sessionId,
+          qaList: state.qaList,
+          currentQuestion: state.currentQuestion
+        }));
+      } catch (e) {}
+    }
+
+    function loadLocalProgress() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function showLoading(visible) {
+      document.getElementById('view-loading').classList.toggle('hidden', !visible);
+    }
+
+    function setQuizBusy(busy, text) {
+      var btn = document.getElementById('btn-next');
+      btn.disabled = busy;
+      btn.textContent = busy ? (text || '処理中…') : '次へ進む';
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('q-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('q-error').classList.add('hidden');
+    }
+
+    function onFatalError(err) {
+      document.getElementById('loading-text').textContent = '読み込みに失敗しました: ' + (err.message || err);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
