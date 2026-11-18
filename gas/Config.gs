@@ -18,19 +18,19 @@ var APP_CONFIG = {
     'gemini-3-flash-preview'
   ],
 
-  // --- 判定しきい値（GeminiAPI_test 実測に基づく初期値） ---
-  CONFIDENCE_THRESHOLD: 0.90,      // 片側確定とする確信度
+  // --- 判定しきい値（GeminiAPI_test および本番実測に基づく調整値） ---
+  CONFIDENCE_THRESHOLD: 0.80,      // 片側確定とする確信度
   CLEAR_CONFIDENCE_THRESHOLD: 0.95,// 明確度ラベル「はっきり」の境界
   BALANCE_MIN: 0.40,               // 拮抗圏の下限確率
   BALANCE_MAX: 0.60,               // 拮抗圏の上限確率
   BOTH_POLES_THRESHOLD: 0.60,      // 両極エピソードありとみなす noul しきい値
   BAL_SWITCH_THRESHOLD: 0.60,      // 使い分け型寄りとみなす bal_switch noul しきい値
-  BIG5_SUFF_THRESHOLD: 0.70,       // ビッグファイブ材料十分とみなす noul しきい値
+  BIG5_SUFF_THRESHOLD: 0.30,       // ビッグファイブ材料十分とみなす noul しきい値
   INJECTION_THRESHOLD: 0.80,       // プロンプトインジェクション検知しきい値
 
   // --- 出題キャップ（キャップ優先で打ち切り） ---
-  MAX_QUESTIONS_PER_AXIS: 4,       // MBTI 各軸の上限問数（固定1 + 適応3相当、BAL含む）
-  MAX_TOTAL_QUESTIONS: 14,         // 診断全体の最大質問数
+  MAX_QUESTIONS_PER_AXIS: 3,       // MBTI 各軸の上限問数（固定1 + 適応2。BALは例外+1可）
+  MAX_TOTAL_QUESTIONS: 12,         // 診断全体の最大質問数
 
   // --- セキュリティ・濫用ガード ---
   MAX_ANSWER_LENGTH: 1000,         // 1問あたりの最大文字数

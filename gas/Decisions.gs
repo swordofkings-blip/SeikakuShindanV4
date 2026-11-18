@@ -443,11 +443,11 @@ function selectNextQuestion_(qaList, evaluation) {
     }
   }
 
-  // 2. バランス確認質問（拮抗圏＋両極揃い＋未確認、かつ軸上限内）
+  // 2. バランス確認質問（拮抗圏＋両極揃い＋未確認。BALのみ軸上限+1まで例外許可）
   var axesOrder = ['E/I', 'S/N', 'T/F', 'J/P'];
   for (var a = 0; a < axesOrder.length; a++) {
     var ax = evaluation.mbti[axesOrder[a]];
-    if (ax.state === 'needs_balance_check' && ax.askedCount < APP_CONFIG.MAX_QUESTIONS_PER_AXIS) {
+    if (ax.state === 'needs_balance_check' && ax.askedCount <= APP_CONFIG.MAX_QUESTIONS_PER_AXIS) {
       var balPool = getUnaskedQuestions('MBTI_BALANCE', ax.axis, askedMap);
       if (balPool.length > 0) {
         return balPool[0];
