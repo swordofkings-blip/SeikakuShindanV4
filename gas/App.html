@@ -67,6 +67,29 @@
       border-color: rgba(124, 108, 246, 0.4);
       color: #c4b5fd;
     }
+    .facet-wrap {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .facet-group + .facet-group { margin-top: 10px; }
+    .facet-title {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .facet-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .facet-chip-high {
+      background: rgba(52, 211, 153, 0.14);
+      border-color: rgba(52, 211, 153, 0.38);
+      color: #6ee7b7;
+    }
+    .facet-chip-low {
+      background: rgba(251, 191, 36, 0.12);
+      border-color: rgba(251, 191, 36, 0.35);
+      color: #fcd34d;
+    }
     h1, h2, h3 { margin-top: 0; }
     .btn {
       display: inline-flex;
@@ -405,6 +428,7 @@
       <div class="card reveal-card" style="--reveal-delay:220ms;">
         <div class="section-title">ビッグファイブ 5因子（0〜100）</div>
         <div id="res-big5-bars"></div>
+        <div id="res-big5-facets" class="facet-wrap hidden"></div>
       </div>
 
       <div id="res-report-sections"></div>
@@ -748,6 +772,30 @@
           '</div>';
         big5Wrap.insertAdjacentHTML('beforeend', html);
       });
+
+      // 特徴が出た詳細ファセット（高め・低めのみ表示、中庸・材料不足は非表示）
+      var facetWrap = document.getElementById('res-big5-facets');
+      facetWrap.innerHTML = '';
+      var facets = ev.big5Facets || { high: [], low: [] };
+      if ((facets.high && facets.high.length > 0) || (facets.low && facets.low.length > 0)) {
+        var facetHtml = '';
+        if (facets.high && facets.high.length > 0) {
+          facetHtml += '<div class="facet-group"><div class="facet-title">▲ 高めに出た詳細傾向</div><div class="facet-chips">' +
+            facets.high.map(function(f) {
+              return '<span class="badge facet-chip-high">[' + escapeHtml_(f.domain) + '] ' + escapeHtml_(f.name) + ' (' + f.score100 + ')</span>';
+            }).join('') + '</div></div>';
+        }
+        if (facets.low && facets.low.length > 0) {
+          facetHtml += '<div class="facet-group"><div class="facet-title">▼ 低めに出た詳細傾向</div><div class="facet-chips">' +
+            facets.low.map(function(f) {
+              return '<span class="badge facet-chip-low">[' + escapeHtml_(f.domain) + '] ' + escapeHtml_(f.name) + ' (' + f.score100 + ')</span>';
+            }).join('') + '</div></div>';
+        }
+        facetWrap.innerHTML = facetHtml;
+        facetWrap.classList.remove('hidden');
+      } else {
+        facetWrap.classList.add('hidden');
+      }
 
       // レポート本文セクション
       var sections = [

@@ -167,6 +167,8 @@ function buildReportPrompt_(qaList, evaluation) {
     big5Lines.push('- ' + b.label + ': ' + b.score100 + '点 / 100');
   }
 
+  var facetLines = formatFacetSummaryLines_(evaluation.big5Facets);
+
   var qaLines = [];
   for (var k = 0; k < qaList.length; k++) {
     var q = qaList[k];
@@ -190,6 +192,7 @@ function buildReportPrompt_(qaList, evaluation) {
     mbtiLines.join('\n'),
     'ビッグファイブ 5因子:',
     big5Lines.join('\n'),
+    facetLines.length > 0 ? 'ビッグファイブ 特徴が出た詳細ファセット（中庸は除外）:\n' + facetLines.join('\n') : '',
     '',
     '【回答履歴】',
     qaLines.join('\n\n'),
@@ -206,7 +209,7 @@ function buildReportPrompt_(qaList, evaluation) {
     '  "relationships": "対人関係・コミュニケーションの傾向（280〜360字・2段落に改行分け）",',
     '  "growthTips": "今後に向けた実践的なヒント（280〜360字・2段落に改行分け）",',
     '  "aruaru": ["この人ならではの日常あるある1", "あるある2", "あるある3", "あるある4"],',
-    '  "big5Analysis": "ビッグファイブ5因子の数値バランスから見える特徴とメンタルの波（320〜420字・2〜3段落に改行分け）",',
+    '  "big5Analysis": "ビッグファイブ5因子の数値バランスから見える特徴とメンタルの波。抽出された詳細ファセット（高め・低め）がある場合はそれらにも具体的に触れること（320〜420字・2〜3段落に改行分け）",',
     '  "balanceAnalysis": "X（使い分け）またはY（未分化）軸がある場合のみ記述、なければ空文字。回答や確認質問での場面切替・揺らぎを引用しつつ、『X（使い分け型）』か『Y（未分化型）』かを断定せず肯定的に読み解く（250〜350字・2段落に改行分け）",',
     '  "shareComment": "SNSシェア画像に添える一言コメント（40文字以内）"',
     '}'
@@ -233,9 +236,11 @@ function buildSimpleReport(evaluation) {
   }
 
   var b = evaluation.big5;
+  var facetLines = formatFacetSummaryLines_(evaluation.big5Facets);
   var big5Summary =
     '外向性 ' + b.E.score100 + '点 / 開放性 ' + b.O.score100 + '点 / 誠実性 ' + b.C.score100 +
-    '点 / 協調性 ' + b.A.score100 + '点 / 神経症傾向 ' + b.N.score100 + '点というバランスです。';
+    '点 / 協調性 ' + b.A.score100 + '点 / 神経症傾向 ' + b.N.score100 + '点というバランスです。' +
+    (facetLines.length > 0 ? '\n\n' + facetLines.join('\n') : '');
 
   return {
     isSimple: true,
@@ -257,6 +262,25 @@ function buildSimpleReport(evaluation) {
     balanceAnalysis: balanceNotes.join(' '),
     shareComment: evaluation.mbtiType + '（' + typeLabel + '）'
   };
+}
+
+/**
+ * 抽出された高・低ファセット一覧をレポート用テキスト行へ整形する。
+ * @param {Object|undefined} big5Facets
+ * @returns {Array<string>}
+ */
+function formatFacetSummaryLines_(big5Facets) {
+  if (!big5Facets) {
+    return [];
+  }
+  var lines = [];
+  if (big5Facets.high && big5Facets.high.length > 0) {
+    lines.push('- ▲ 高め: ' + big5Facets.high.map(function(f) { return '[' + f.domain + '] ' + f.name + ' (' + f.score100 + '点)'; }).join('、'));
+  }
+  if (big5Facets.low && big5Facets.low.length > 0) {
+    lines.push('- ▼ 低め: ' + big5Facets.low.map(function(f) { return '[' + f.domain + '] ' + f.name + ' (' + f.score100 + '点)'; }).join('、'));
+  }
+  return lines;
 }
 
 /**

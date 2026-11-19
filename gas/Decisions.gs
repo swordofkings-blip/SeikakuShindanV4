@@ -233,8 +233,42 @@ function buildDecisionQuestions_() {
   };
 }
 
+// IPIP-NEO 準拠 30ファセット定義（終了時の1回のみ一括評価し、高め・低めだけ抽出する）
+var BIG5_FACET_DEFS = [
+  { code: 'E1', key: 'facet_e1', domain: '外向性', name: '親しみやすさ', desc: '初対面や周囲に対して温かく打ち解けやすい度合い' },
+  { code: 'E2', key: 'facet_e2', domain: '外向性', name: '社交性', desc: '大人数の場や人との交流を積極的に楽しむ度合い' },
+  { code: 'E3', key: 'facet_e3', domain: '外向性', name: '自己主張', desc: '自分の意見をはっきり伝え、場をリード・仕切る度合い' },
+  { code: 'E4', key: 'facet_e4', domain: '外向性', name: '活動性', desc: 'テンポよく忙しく動き回り、エネルギーを使う度合い' },
+  { code: 'E5', key: 'facet_e5', domain: '外向性', name: '刺激追求', desc: 'スリルや非日常・新しい刺激を求める度合い' },
+  { code: 'E6', key: 'facet_e6', domain: '外向性', name: '明朗性', desc: 'ポジティブで明るく楽しむ気持ちを表に出す度合い' },
+  { code: 'O1', key: 'facet_o1', domain: '開放性', name: '想像力', desc: '空想やアイデア・まだ形のない可能性を広げる度合い' },
+  { code: 'O2', key: 'facet_o2', domain: '開放性', name: '芸術的関心', desc: '音楽・絵・表現・美的な世界に関心を寄せる度合い' },
+  { code: 'O3', key: 'facet_o3', domain: '開放性', name: '情動の豊かさ', desc: '自分の感情の動きや心の揺れを深く味わう度合い' },
+  { code: 'O4', key: 'facet_o4', domain: '開放性', name: '冒険心', desc: '未経験のやり方や新しい変化を試すことを好む度合い' },
+  { code: 'O5', key: 'facet_o5', domain: '開放性', name: '知的好奇心', desc: '抽象的な議論や仕組みの探求・学ぶことを楽しむ度合い' },
+  { code: 'O6', key: 'facet_o6', domain: '開放性', name: '柔軟性', desc: '固定観念やルールにとらわれず多角的に捉える度合い' },
+  { code: 'C1', key: 'facet_c1', domain: '誠実性', name: '自己効力感', desc: '課題を自分でやり遂げられるという手応え・有能感の度合い' },
+  { code: 'C2', key: 'facet_c2', domain: '誠実性', name: '秩序・計画性', desc: '段取り・スケジュール・マイルストーンを整えて進める度合い' },
+  { code: 'C3', key: 'facet_c3', domain: '誠実性', name: '責任感', desc: '約束や締め切り・役割をきっちり守ろうとする度合い' },
+  { code: 'C4', key: 'facet_c4', domain: '誠実性', name: '達成努力', desc: '高い目標や成果に向けて粘り強く取り組む度合い' },
+  { code: 'C5', key: 'facet_c5', domain: '誠実性', name: '自己規律', desc: '疲れていてもやるべきことを先送りせずやり切る度合い' },
+  { code: 'C6', key: 'facet_c6', domain: '誠実性', name: '慎重性', desc: '決断や行動の前にリスクや手順をよく考えてから動く度合い' },
+  { code: 'A1', key: 'facet_a1', domain: '協調性', name: '信頼', desc: '他者の善意や誠実さを前提に信じやすい度合い' },
+  { code: 'A2', key: 'facet_a2', domain: '協調性', name: '率直さ', desc: '建前や仮面を使わず本音や事実をストレートに出す度合い' },
+  { code: 'A3', key: 'facet_a3', domain: '協調性', name: '利他・思いやり', desc: '相手の気持ちを汲み取り、寄り添って助けようとする度合い' },
+  { code: 'A4', key: 'facet_a4', domain: '協調性', name: '協調・調和', desc: '角が立たないよう空気を読み、対立を避けて合わせる度合い' },
+  { code: 'A5', key: 'facet_a5', domain: '協調性', name: '謙虚さ', desc: '自分を誇示せず控えめに振る舞う度合い' },
+  { code: 'A6', key: 'facet_a6', domain: '協調性', name: '共感性', desc: '他者の悩みや感情に心を寄せて一緒に感じる度合い' },
+  { code: 'N1', key: 'facet_n1', domain: '神経症傾向', name: '不安', desc: '先のことや失敗への心配・落ち着かなさを抱えやすい度合い' },
+  { code: 'N2', key: 'facet_n2', domain: '神経症傾向', name: '怒り・苛立ち', desc: '思い通りにいかないときにイライラや不満を感じやすい度合い' },
+  { code: 'N3', key: 'facet_n3', domain: '神経症傾向', name: '落ち込み', desc: '失敗や疲労を引きずり、気力が下がりやすい度合い' },
+  { code: 'N4', key: 'facet_n4', domain: '神経症傾向', name: '自意識・気遣い疲れ', desc: '人目や評価を気にして神経をすり減らしやすい度合い' },
+  { code: 'N5', key: 'facet_n5', domain: '神経症傾向', name: '衝動性', desc: 'その場の気分や衝動に任せて行動・後回しにしやすい度合い' },
+  { code: 'N6', key: 'facet_n6', domain: '神経症傾向', name: 'ストレス脆弱性', desc: 'プレッシャーや疲労が重なったときに負荷を受けやすい度合い' }
+];
+
 /**
- * 最終確定時のみ呼び出す Big5 score & バランス下位分類の質問セットを構築する。
+ * 最終確定時のみ呼び出す Big5 score（5因子＋30ファセット）& バランス下位分類の質問セットを構築する。
  * @param {Object} evaluation
  * @returns {Object}
  */
@@ -338,6 +372,21 @@ function buildFinalScoreQuestions_(evaluation) {
         }
       };
     }
+  }
+  // ビッグファイブ 30ファセットを一括追加（材料がない項目は中庸になるよう指示）
+  for (var f = 0; f < BIG5_FACET_DEFS.length; f++) {
+    var fd = BIG5_FACET_DEFS[f];
+    q[fd.key] = {
+      type: 'score',
+      instructions: 'ビッグファイブ【' + fd.domain + '】のファセット「' + fd.name + '」（' + fd.desc + '）を評価してください。根拠が回答にない場合は必ず中庸にしてください。',
+      criteria: [
+        '非常に低い：' + fd.name + 'の傾向が明らかに逆（低い）である根拠が回答にある。',
+        'やや低い：' + fd.name + 'が控えめ・低いことがうかがえる。',
+        '中庸・判定材料なし：回答に明確な根拠がない、または中程度。',
+        'やや高い：' + fd.name + 'が高いことがうかがえる。',
+        '非常に高い：' + fd.name + 'が極めて強い根拠が回答にある。'
+      ]
+    };
   }
   return q;
 }
@@ -482,6 +531,25 @@ function mergeFinalScores_(evaluation, finalAnswers) {
     evaluation.mbti['S/N'].letter +
     evaluation.mbti['T/F'].letter +
     evaluation.mbti['J/P'].letter;
+
+  // 30ファセットから高め・低めが明確に出た項目だけを抽出（中庸・材料不足は非表示）
+  var highFacets = [];
+  var lowFacets = [];
+  for (var k = 0; k < BIG5_FACET_DEFS.length; k++) {
+    var fd = BIG5_FACET_DEFS[k];
+    if (finalAnswers[fd.key]) {
+      var s100 = Math.round((finalAnswers[fd.key].score / 4) * 100);
+      var entry = { code: fd.code, domain: fd.domain, name: fd.name, score100: s100 };
+      if (s100 >= APP_CONFIG.FACET_HIGH_THRESHOLD) {
+        highFacets.push(entry);
+      } else if (s100 <= APP_CONFIG.FACET_LOW_THRESHOLD) {
+        lowFacets.push(entry);
+      }
+    }
+  }
+  highFacets.sort(function(a, b) { return b.score100 - a.score100; });
+  lowFacets.sort(function(a, b) { return a.score100 - b.score100; });
+  evaluation.big5Facets = { high: highFacets, low: lowFacets };
 }
 
 /**

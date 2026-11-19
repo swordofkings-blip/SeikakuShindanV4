@@ -27,6 +27,8 @@ var APP_CONFIG = {
   BOTH_POLES_THRESHOLD: 0.50,      // 両極エピソード・使い分けありとみなす noul しきい値
   BAL_SWITCH_THRESHOLD: 0.55,      // 使い分け型(X)と未分化型(Y)を分ける bal_switch noul しきい値
   BIG5_SUFF_THRESHOLD: 0.30,       // ビッグファイブ材料十分とみなす noul しきい値
+  FACET_HIGH_THRESHOLD: 68,        // 詳細ファセットで「高め」として抽出・表示する下限スコア(0-100)
+  FACET_LOW_THRESHOLD: 32,         // 詳細ファセットで「低め」として抽出・表示する上限スコア(0-100)
   INJECTION_THRESHOLD: 0.80,       // プロンプトインジェクション検知しきい値
 
   // --- 出題キャップ（キャップ優先で打ち切り） ---
