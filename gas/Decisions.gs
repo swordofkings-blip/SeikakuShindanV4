@@ -6,9 +6,10 @@
 /**
  * 累積回答履歴を Decisions API で判定し、評価結果と次の質問を返す。
  * @param {Array<Object>} qaList 回答履歴配列
+ * @param {boolean=} opt_forceFinish ユーザーが途中終了して即レポート生成を選択した場合 true
  * @returns {Object} 判定結果 { injectionDetected, evaluation, nextQuestion, isFinished, metrics }
  */
-function evaluateCumulativeAnswers(qaList) {
+function evaluateCumulativeAnswers(qaList, opt_forceFinish) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!apiKey) {
     throw new Error('Script Properties に GEMINI_API_KEY が設定されていません。');
@@ -30,7 +31,7 @@ function evaluateCumulativeAnswers(qaList) {
   }
 
   var evaluation = interpretDecisionAnswers_(answers, qaList);
-  var nextQuestion = selectNextQuestion_(qaList, evaluation);
+  var nextQuestion = opt_forceFinish ? null : selectNextQuestion_(qaList, evaluation);
 
   var totalElapsedMs = json._elapsedMs;
   var totalInputTokens = (json.usage && json.usage.total_input_tokens) || 0;

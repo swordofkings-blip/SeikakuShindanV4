@@ -83,7 +83,7 @@ function apiPredecideQ6(payload) {
  */
 function apiSubmitAdaptiveStep(payload) {
   validateSessionAndAnswers_(payload);
-  var res = evaluateCumulativeAnswers(payload.qaList);
+  var res = evaluateCumulativeAnswers(payload.qaList, Boolean(payload.forceFinish));
   if (res.injectionDetected) {
     return { injectionDetected: true };
   }
