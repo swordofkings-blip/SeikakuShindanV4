@@ -21,10 +21,11 @@ var APP_CONFIG = {
   // --- 判定しきい値（GeminiAPI_test および本番実測に基づく調整値） ---
   CONFIDENCE_THRESHOLD: 0.80,      // 片側確定とする確信度
   CLEAR_CONFIDENCE_THRESHOLD: 0.95,// 明確度ラベル「はっきり」の境界
-  BALANCE_MIN: 0.40,               // 拮抗圏の下限確率
-  BALANCE_MAX: 0.60,               // 拮抗圏の上限確率
-  BOTH_POLES_THRESHOLD: 0.60,      // 両極エピソードありとみなす noul しきい値
-  BAL_SWITCH_THRESHOLD: 0.60,      // 使い分け型寄りとみなす bal_switch noul しきい値
+  BALANCE_MIN: 0.35,               // 拮抗圏の下限確率（使い分け型も含めて拾うため 35〜65% に調整）
+  BALANCE_MAX: 0.65,               // 拮抗圏の上限確率
+  BALANCE_CHECK_MAX_CONF: 0.75,    // 境界付近でバランス確認質問を追加出題する上限確信度
+  BOTH_POLES_THRESHOLD: 0.50,      // 両極エピソード・使い分けありとみなす noul しきい値
+  BAL_SWITCH_THRESHOLD: 0.55,      // 使い分け型寄りとみなす bal_switch noul しきい値
   BIG5_SUFF_THRESHOLD: 0.30,       // ビッグファイブ材料十分とみなす noul しきい値
   INJECTION_THRESHOLD: 0.80,       // プロンプトインジェクション検知しきい値
 
