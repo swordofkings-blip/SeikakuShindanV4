@@ -408,14 +408,21 @@
       background: var(--surface-2);
       border-radius: 999px;
       overflow: hidden;
-      margin: 12px auto 8px;
+      margin: 14px auto 12px;
+      position: relative;
     }
     .gen-progress-bar {
       height: 100%;
-      width: 8%;
-      background: linear-gradient(90deg, var(--accent), var(--ok));
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--ok) 50%, var(--accent) 100%);
+      background-size: 200% 100%;
       border-radius: 999px;
-      transition: width 0.45s ease;
+      animation: genShimmer 1.8s linear infinite;
+      transition: opacity 0.3s ease;
+    }
+    @keyframes genShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
     /* フローティングトースト通知 */
     .toast {
@@ -562,11 +569,11 @@
         </div>
       </div>
 
-      <!-- プログレスバー -->
+      <!-- プログレスバー（通信中アニメーション） -->
       <div class="gen-progress-wrap">
         <div class="gen-progress-bar" id="gen-progress-bar"></div>
       </div>
-      <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">12%</div>
+      <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">AI生成モデルと通信中…（0秒）</div>
 
       <div id="gen-status-text" style="font-size:0.98rem; font-weight:600; margin-bottom:4px;">回答エピソードを照合しています…</div>
       <div style="font-size:0.83rem; color:var(--muted);">素の自分と外向きの顔の二層構造・詳細ファセットを分析中（約15〜25秒）</div>
@@ -727,10 +734,6 @@
       onAnswerInput();
       hideError();
 
-      var tplAccordion = document.getElementById('q-tpl-accordion');
-      if (tplAccordion) {
-        tplAccordion.open = false;
-      }
       var tplWrap = document.getElementById('q-templates');
       tplWrap.innerHTML = '';
       (q.templates || []).forEach(function(tpl) {
@@ -917,7 +920,7 @@
         .apiSubmitAdaptiveStep({ sessionId: state.sessionId, qaList: state.qaList, forceFinish: Boolean(forceFinish) });
     }
 
-    function updateGeneratingStepper_(stepIdx, pct, msg) {
+    function updateGeneratingStepper_(stepIdx, subText, msg) {
       for (var i = 1; i <= 3; i++) {
         var el = document.getElementById('gen-step-' + i);
         if (!el) continue;
@@ -929,11 +932,9 @@
         var line = document.getElementById('gen-line-' + j);
         if (line) line.classList.toggle('done', j < stepIdx);
       }
-      var bar = document.getElementById('gen-progress-bar');
       var pctEl = document.getElementById('gen-progress-pct');
       var txtEl = document.getElementById('gen-status-text');
-      if (bar) bar.style.width = pct + '%';
-      if (pctEl) pctEl.textContent = pct + '%';
+      if (pctEl && subText) pctEl.textContent = subText;
       if (txtEl && msg) txtEl.textContent = msg;
     }
 
@@ -944,23 +945,26 @@
 
       if (state.genTimer) clearInterval(state.genTimer);
       var elapsed = 0;
-      updateGeneratingStepper_(1, 12, '回答エピソードを照合しています…');
+      var phases = [
+        '回答エピソードと4軸バランスを照合しています…',
+        '素の自分と外向きの顔の二層構造を読み解いています…',
+        '強み・弱み・仕事スタイル・対人関係を執筆しています…',
+        'ビッグファイブ5因子と詳細ファセットを分析しています…',
+        'あなた専用レポートの文章を整えています…'
+      ];
+      updateGeneratingStepper_(1, 'AI生成モデルと通信中…（0秒 / 目安 15〜30秒）', phases[0]);
       state.genTimer = setInterval(function() {
         elapsed += 1;
-        var pct = Math.min(94, 12 + Math.round(elapsed * 3.8));
-        if (elapsed < 5) {
-          updateGeneratingStepper_(1, pct, '回答エピソードを照合しています…');
-        } else if (elapsed < 11) {
-          updateGeneratingStepper_(2, pct, '素の自分と外向きの顔・5因子ファセットを分析しています…');
-        } else {
-          updateGeneratingStepper_(3, pct, 'あなた専用の深層レポートを執筆しています…');
-        }
+        var stepIdx = elapsed < 4 ? 1 : (elapsed < 10 ? 2 : 3);
+        var phaseIdx = Math.min(phases.length - 1, Math.floor(elapsed / 5));
+        var subText = 'AI生成モデルと通信中…（' + elapsed + '秒経過 / 目安 15〜30秒）';
+        updateGeneratingStepper_(stepIdx, subText, phases[phaseIdx]);
       }, 1000);
 
       google.script.run
         .withSuccessHandler(function(fullResult) {
           if (state.genTimer) clearInterval(state.genTimer);
-          updateGeneratingStepper_(3, 100, 'レポートが完成しました！');
+          updateGeneratingStepper_(3, '完了', 'レポートが完成しました！');
           document.getElementById('view-generating').classList.add('hidden');
           renderResult(fullResult);
         })
