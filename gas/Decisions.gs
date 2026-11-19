@@ -451,7 +451,7 @@ function interpretDecisionAnswers_(a, qaList) {
       balAsked: stats.balAsked,
       editedOrCustomCount: stats.editedOrCustomCount,
       letter: state === 'balanced' ? balLetter : d.choice,
-      clarity: state === 'balanced' ? 'バランス' : (d.confidence >= APP_CONFIG.CLEAR_CONFIDENCE_THRESHOLD ? 'はっきり' : 'やや'),
+      clarity: state === 'balanced' ? 'バランス' : resolvePoleClarity_(d.confidence),
       balanceSubtype: state === 'balanced' ? (balLetter === 'X' ? '使い分け' : '未分化') : null
     };
   }
@@ -678,7 +678,7 @@ function finalizeMbtiType_(evaluation) {
       } else {
         ax.state = 'decided';
         ax.letter = ax.choice;
-        ax.clarity = ax.confidence >= APP_CONFIG.CLEAR_CONFIDENCE_THRESHOLD ? 'はっきり' : 'やや';
+        ax.clarity = resolvePoleClarity_(ax.confidence);
       }
     }
   }
@@ -687,4 +687,19 @@ function finalizeMbtiType_(evaluation) {
     evaluation.mbti['S/N'].letter +
     evaluation.mbti['T/F'].letter +
     evaluation.mbti['J/P'].letter;
+}
+
+/**
+ * 確信度に応じた片側確定の明確度ラベル（はっきり／しっかり／やや）を返す。
+ * @param {number} conf
+ * @returns {string}
+ */
+function resolvePoleClarity_(conf) {
+  if (conf >= APP_CONFIG.CLEAR_CONFIDENCE_THRESHOLD) {
+    return 'はっきり';
+  }
+  if (conf >= APP_CONFIG.CONFIDENCE_THRESHOLD) {
+    return 'しっかり';
+  }
+  return 'やや';
 }

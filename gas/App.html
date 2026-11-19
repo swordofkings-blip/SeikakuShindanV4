@@ -141,26 +141,52 @@
       display: block;
       width: 100%;
       height: auto;
-      max-height: 300px;
+      max-height: 220px;
       object-fit: cover;
     }
     .q-text {
-      font-size: 1.06rem;
+      font-size: 1.04rem;
       font-weight: 400;
-      line-height: 1.8;
+      line-height: 1.75;
       white-space: pre-line;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
-    .templates-label {
-      font-size: 0.8rem;
+    .tpl-accordion {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(31, 38, 54, 0.55);
+      overflow: hidden;
+    }
+    .tpl-accordion summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 9px 13px;
+      font-size: 0.82rem;
       color: var(--muted);
-      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: color 0.15s, background 0.15s;
+    }
+    .tpl-accordion summary::-webkit-details-marker { display: none; }
+    .tpl-accordion summary:hover { color: var(--text); background: rgba(124, 108, 246, 0.08); }
+    .tpl-accordion summary::after {
+      content: "▾";
+      font-size: 0.9rem;
+      transition: transform 0.2s ease;
+    }
+    .tpl-accordion[open] summary::after { transform: rotate(180deg); }
+    .tpl-accordion[open] summary {
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
     }
     .template-list {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 14px;
+      padding: 10px 12px;
     }
     .tpl-btn {
       background: var(--surface-2);
@@ -179,7 +205,7 @@
     }
     textarea {
       width: 100%;
-      min-height: 120px;
+      min-height: 92px;
       background: #0e121b;
       color: var(--text);
       border: 1px solid var(--border);
@@ -322,6 +348,112 @@
       gap: 10px;
       margin-top: 12px;
     }
+    /* ステッパー & レポート生成プログレスバー */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 460px;
+      margin: 22px auto 18px;
+      gap: 6px;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      color: var(--muted);
+      font-size: 0.76rem;
+      transition: color 0.25s;
+    }
+    .step-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: var(--muted);
+      transition: all 0.25s;
+    }
+    .step-item.active { color: var(--text); font-weight: 600; }
+    .step-item.active .step-circle {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(124, 108, 246, 0.55);
+    }
+    .step-item.done { color: var(--ok); }
+    .step-item.done .step-circle {
+      border-color: var(--ok);
+      background: rgba(52, 211, 153, 0.18);
+      color: var(--ok);
+    }
+    .step-line {
+      height: 2px;
+      flex: 0.6;
+      background: var(--border);
+      margin-bottom: 20px;
+      transition: background 0.25s;
+    }
+    .step-line.done { background: var(--ok); }
+    .gen-progress-wrap {
+      max-width: 420px;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px auto 8px;
+    }
+    .gen-progress-bar {
+      height: 100%;
+      width: 8%;
+      background: linear-gradient(90deg, var(--accent), var(--ok));
+      border-radius: 999px;
+      transition: width 0.45s ease;
+    }
+    /* フローティングトースト通知 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #232b3e;
+      color: var(--text);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+      padding: 11px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    .toast-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.05rem;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .toast-close:hover { color: var(--text); }
     @media (max-width: 560px) {
       .share-actions { grid-template-columns: 1fr; }
     }
@@ -390,8 +522,10 @@
 
         <div class="q-text" id="q-text"></div>
 
-        <div class="templates-label">回答アシスト（タップで挿入・自由に編集できます）</div>
-        <div class="template-list" id="q-templates"></div>
+        <details class="tpl-accordion" id="q-tpl-accordion">
+          <summary><span>💡 回答アシスト（例文から入力・編集する）</span></summary>
+          <div class="template-list" id="q-templates"></div>
+        </details>
       </div>
 
       <textarea id="q-answer" placeholder="あなたの言葉や具体的なエピソードを入力してください…" oninput="onAnswerInput()"></textarea>
@@ -406,12 +540,36 @@
     </div>
 
     <!-- 最終レポート生成中の遷移画面 -->
-    <div id="view-generating" class="card hidden reveal-hero" style="text-align:center; padding:48px 24px;">
-      <div class="badge badge-accent" style="margin-bottom:12px;">判定完了</div>
-      <div class="type-code" id="gen-type-code" style="margin-bottom:8px;">----</div>
-      <div class="spinner" style="margin:18px auto;"></div>
-      <div id="gen-status-text" style="font-size:1rem; font-weight:600; margin-bottom:6px;">深層レポートを執筆しています…</div>
-      <div style="font-size:0.85rem; color:var(--muted);">あなたの回答エピソードと二層構造を読み解いています</div>
+    <div id="view-generating" class="card hidden reveal-hero" style="text-align:center; padding:38px 24px;">
+      <div class="badge badge-accent" style="margin-bottom:10px;">判定完了</div>
+      <div class="type-code" id="gen-type-code" style="margin-bottom:4px;">----</div>
+
+      <!-- 3段階ステッパー -->
+      <div class="stepper">
+        <div class="step-item active" id="gen-step-1">
+          <div class="step-circle">1</div>
+          <span>回答照合</span>
+        </div>
+        <div class="step-line" id="gen-line-1"></div>
+        <div class="step-item" id="gen-step-2">
+          <div class="step-circle">2</div>
+          <span>二層・5因子分析</span>
+        </div>
+        <div class="step-line" id="gen-line-2"></div>
+        <div class="step-item" id="gen-step-3">
+          <div class="step-circle">3</div>
+          <span>レポート執筆</span>
+        </div>
+      </div>
+
+      <!-- プログレスバー -->
+      <div class="gen-progress-wrap">
+        <div class="gen-progress-bar" id="gen-progress-bar"></div>
+      </div>
+      <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">12%</div>
+
+      <div id="gen-status-text" style="font-size:0.98rem; font-weight:600; margin-bottom:4px;">回答エピソードを照合しています…</div>
+      <div style="font-size:0.83rem; color:var(--muted);">素の自分と外向きの顔の二層構造・詳細ファセットを分析中（約15〜25秒）</div>
     </div>
 
     <!-- 結果画面 -->
@@ -457,6 +615,13 @@
     <footer>
       ※本診断はユングの類型論やビッグファイブ理論を参考にした独自開発の性格診断であり、公式の MBTI®（The Myers &amp; Briggs Foundation）とは一切関係ありません。
     </footer>
+  </div>
+
+  <!-- フローティングトースト通知 -->
+  <div id="app-toast" class="toast hidden" role="status" aria-live="polite">
+    <span>🔔</span>
+    <span id="app-toast-msg"></span>
+    <button type="button" class="toast-close" onclick="hideToast()">×</button>
   </div>
 
   <script>
@@ -562,6 +727,10 @@
       onAnswerInput();
       hideError();
 
+      var tplAccordion = document.getElementById('q-tpl-accordion');
+      if (tplAccordion) {
+        tplAccordion.open = false;
+      }
       var tplWrap = document.getElementById('q-templates');
       tplWrap.innerHTML = '';
       (q.templates || []).forEach(function(tpl) {
@@ -713,7 +882,7 @@
     }
 
     function requestAdaptiveNext(forceFinish, pushedCurrent) {
-      var msg = forceFinish ? 'ここまでの回答で最終判定をまとめています…' : (state.qaList.length >= 6 ? '判定をまとめています…' : '回答を分析しています…');
+      var msg = forceFinish ? 'ここまでの回答で最終判定をまとめています…' : '回答を分析しています…';
       setQuizBusy(true, msg);
 
       google.script.run
@@ -748,17 +917,55 @@
         .apiSubmitAdaptiveStep({ sessionId: state.sessionId, qaList: state.qaList, forceFinish: Boolean(forceFinish) });
     }
 
+    function updateGeneratingStepper_(stepIdx, pct, msg) {
+      for (var i = 1; i <= 3; i++) {
+        var el = document.getElementById('gen-step-' + i);
+        if (!el) continue;
+        el.classList.remove('active', 'done');
+        if (i < stepIdx) el.classList.add('done');
+        else if (i === stepIdx) el.classList.add('active');
+      }
+      for (var j = 1; j <= 2; j++) {
+        var line = document.getElementById('gen-line-' + j);
+        if (line) line.classList.toggle('done', j < stepIdx);
+      }
+      var bar = document.getElementById('gen-progress-bar');
+      var pctEl = document.getElementById('gen-progress-pct');
+      var txtEl = document.getElementById('gen-status-text');
+      if (bar) bar.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+      if (txtEl && msg) txtEl.textContent = msg;
+    }
+
     function startFinalReportTransition(simpleResult) {
       document.getElementById('view-quiz').classList.add('hidden');
       document.getElementById('view-generating').classList.remove('hidden');
       document.getElementById('gen-type-code').textContent = simpleResult.evaluation.mbtiType;
 
+      if (state.genTimer) clearInterval(state.genTimer);
+      var elapsed = 0;
+      updateGeneratingStepper_(1, 12, '回答エピソードを照合しています…');
+      state.genTimer = setInterval(function() {
+        elapsed += 1;
+        var pct = Math.min(94, 12 + Math.round(elapsed * 3.8));
+        if (elapsed < 5) {
+          updateGeneratingStepper_(1, pct, '回答エピソードを照合しています…');
+        } else if (elapsed < 11) {
+          updateGeneratingStepper_(2, pct, '素の自分と外向きの顔・5因子ファセットを分析しています…');
+        } else {
+          updateGeneratingStepper_(3, pct, 'あなた専用の深層レポートを執筆しています…');
+        }
+      }, 1000);
+
       google.script.run
         .withSuccessHandler(function(fullResult) {
+          if (state.genTimer) clearInterval(state.genTimer);
+          updateGeneratingStepper_(3, 100, 'レポートが完成しました！');
           document.getElementById('view-generating').classList.add('hidden');
           renderResult(fullResult);
         })
         .withFailureHandler(function() {
+          if (state.genTimer) clearInterval(state.genTimer);
           // タイムアウト・通信エラー時も保存済みの簡易レポートを必ず表示する
           document.getElementById('view-generating').classList.add('hidden');
           renderResult(simpleResult);
@@ -791,12 +998,15 @@
         var m = ev.mbti[ax];
         var p1 = Math.round(m.p1Prob * 100);
         var p2 = 100 - p1;
+        var maxPct = Math.max(p1, p2);
+        var isBal = (m.letter === 'X' || m.letter === 'Y' || m.state === 'balanced');
+        var clarityLabel = isBal ? 'バランス' : (maxPct >= 95 ? 'はっきり' : (maxPct >= 80 ? 'しっかり' : 'やや'));
         var sub = m.balanceSubtype ? ' / ' + m.balanceSubtype : '';
         var html =
           '<div class="axis-row">' +
             '<div class="axis-head">' +
               '<span>' + m.p1 + ' (' + p1 + '%)</span>' +
-              '<span class="badge badge-accent">' + m.letter + '：' + m.clarity + sub + '</span>' +
+              '<span class="badge badge-accent">' + m.letter + '：' + clarityLabel + sub + '</span>' +
               '<span>' + m.p2 + ' (' + p2 + '%)</span>' +
             '</div>' +
             '<div class="bar-bg"><div class="bar-left" data-target-width="' + p1 + '%"></div><div class="bar-right" data-target-width="' + p2 + '%"></div></div>' +
@@ -972,12 +1182,34 @@
     function copyShareUrl() {
       var input = document.getElementById('res-share-url');
       input.select();
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(input.value);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value).catch(function() {
+          document.execCommand('copy');
+        });
       } else {
         document.execCommand('copy');
       }
-      alert('URLをコピーしました！');
+      showToast('共有用URLをコピーしました！');
+    }
+
+    function showToast(msg) {
+      var toast = document.getElementById('app-toast');
+      var msgEl = document.getElementById('app-toast-msg');
+      if (!toast || !msgEl) return;
+      msgEl.textContent = msg;
+      toast.classList.remove('hidden');
+      void toast.offsetWidth;
+      toast.classList.add('show');
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(function() {
+        hideToast();
+      }, 3000);
+    }
+
+    function hideToast() {
+      var toast = document.getElementById('app-toast');
+      if (!toast) return;
+      toast.classList.remove('show');
     }
 
     function restartFromResult() {
