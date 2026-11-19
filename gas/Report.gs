@@ -66,9 +66,14 @@ function generateFullReportWithFallback(qaList, evaluation) {
   var models = APP_CONFIG.REPORT_MODELS;
   var startMs = Date.now();
   var MAX_TOTAL_GEN_MS = 28000; // GAS RPCタイムアウト前に高速モデルへ逃がすための経過上限
+  var cache = CacheService.getScriptCache();
 
   for (var i = 0; i < models.length; i++) {
     var model = models[i];
+    // 直近で429枠枯れを返したモデルはキャッシュ期間中スキップし、全滅時の応答を高速化する
+    if (cache && cache.get('model_429_' + model)) {
+      continue;
+    }
     // すでに時間が押している場合は中間モデルを飛ばし、末尾の高速モデルだけ試す
     if (i > 0 && i < models.length - 1 && (Date.now() - startMs) > MAX_TOTAL_GEN_MS) {
       continue;
@@ -82,6 +87,9 @@ function generateFullReportWithFallback(qaList, evaluation) {
         return { isPending: false, modelUsed: model, report: reportJson };
       }
     } catch (err) {
+      if (cache && String(err.message).indexOf('HTTP 429') !== -1) {
+        cache.put('model_429_' + model, '1', 90); // 429発生モデルは90秒間スキップして即時フォールバックさせる
+      }
       Logger.log('Report model failed (' + model + '): ' + err.message);
     }
   }

@@ -418,7 +418,12 @@
       background-size: 200% 100%;
       border-radius: 999px;
       animation: genShimmer 1.8s linear infinite;
-      transition: opacity 0.3s ease;
+      transition: width 0.3s ease, opacity 0.3s ease;
+    }
+    .gen-progress-bar.idle {
+      width: 0%;
+      animation: none;
+      opacity: 0;
     }
     @keyframes genShimmer {
       0% { background-position: 200% 0; }
@@ -569,11 +574,11 @@
         </div>
       </div>
 
-      <!-- プログレスバー（通信中アニメーション） -->
+      <!-- プログレスバー（通信確定後にアニメーション開始） -->
       <div class="gen-progress-wrap">
-        <div class="gen-progress-bar" id="gen-progress-bar"></div>
+        <div class="gen-progress-bar idle" id="gen-progress-bar"></div>
       </div>
-      <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">AI生成モデルと通信中…（0秒）</div>
+      <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">AI生成モデルの空き枠を確認中…</div>
 
       <div id="gen-status-text" style="font-size:0.98rem; font-weight:600; margin-bottom:4px;">回答エピソードを照合しています…</div>
       <div style="font-size:0.83rem; color:var(--muted);">素の自分と外向きの顔の二層構造・詳細ファセットを分析中（目安 60秒前後）</div>
@@ -945,6 +950,8 @@
 
       if (state.genTimer) clearInterval(state.genTimer);
       var elapsed = 0;
+      var bar = document.getElementById('gen-progress-bar');
+      if (bar) bar.classList.add('idle');
       var phases = [
         '回答エピソードと4軸バランスを照合しています…',
         '素の自分と外向きの顔の二層構造を読み解いています…',
@@ -952,12 +959,17 @@
         'ビッグファイブ5因子と詳細ファセットを分析しています…',
         'あなた専用レポートの文章を整えています…'
       ];
-      updateGeneratingStepper_(1, 'AI生成モデルと通信中…（0秒 / 目安 60秒前後）', phases[0]);
+      // 最初の3秒間はプログレスバーを動かさず429即時エラーの有無を見極める
+      updateGeneratingStepper_(1, 'AI生成モデルの空き枠を確認しています…', '生成サーバーへ接続しています…');
       state.genTimer = setInterval(function() {
         elapsed += 1;
+        if (elapsed < 3) {
+          return;
+        }
+        if (bar) bar.classList.remove('idle');
         var stepIdx = elapsed < 12 ? 1 : (elapsed < 28 ? 2 : 3);
-        var phaseIdx = Math.min(phases.length - 1, Math.floor(elapsed / 12));
-        var subText = 'AI生成モデルと通信中…（' + elapsed + '秒経過 / 目安 60秒前後）';
+        var phaseIdx = Math.min(phases.length - 1, Math.floor((elapsed - 3) / 12));
+        var subText = 'AI生成モデルで執筆中…（' + elapsed + '秒経過 / 目安 60秒前後）';
         updateGeneratingStepper_(stepIdx, subText, phases[phaseIdx]);
       }, 1000);
 
