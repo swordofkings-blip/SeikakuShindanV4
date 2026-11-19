@@ -147,6 +147,8 @@
     .q-text {
       font-size: 1.08rem;
       font-weight: 600;
+      line-height: 1.75;
+      white-space: pre-line;
       margin-bottom: 16px;
     }
     .templates-label {
@@ -550,7 +552,7 @@
       imgWrap.classList.add('hidden');
       imgEl.src = q.imageUrl || '';
 
-      document.getElementById('q-text').textContent = q.question;
+      document.getElementById('q-text').innerHTML = formatRichText(q.question);
       var ta = document.getElementById('q-answer');
       ta.value = '';
       onAnswerInput();
@@ -782,13 +784,13 @@
         if (facets.high && facets.high.length > 0) {
           facetHtml += '<div class="facet-group"><div class="facet-title">▲ 高めに出た詳細傾向</div><div class="facet-chips">' +
             facets.high.map(function(f) {
-              return '<span class="badge facet-chip-high">[' + escapeHtml_(f.domain) + '] ' + escapeHtml_(f.name) + ' (' + f.score100 + ')</span>';
+              return '<span class="badge facet-chip-high">[' + escapeHtml(f.domain) + '] ' + escapeHtml(f.name) + ' (' + f.score100 + ')</span>';
             }).join('') + '</div></div>';
         }
         if (facets.low && facets.low.length > 0) {
           facetHtml += '<div class="facet-group"><div class="facet-title">▼ 低めに出た詳細傾向</div><div class="facet-chips">' +
             facets.low.map(function(f) {
-              return '<span class="badge facet-chip-low">[' + escapeHtml_(f.domain) + '] ' + escapeHtml_(f.name) + ' (' + f.score100 + ')</span>';
+              return '<span class="badge facet-chip-low">[' + escapeHtml(f.domain) + '] ' + escapeHtml(f.name) + ' (' + f.score100 + ')</span>';
             }).join('') + '</div></div>';
         }
         facetWrap.innerHTML = facetHtml;
