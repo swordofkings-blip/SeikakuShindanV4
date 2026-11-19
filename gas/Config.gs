@@ -25,7 +25,7 @@ var APP_CONFIG = {
   BALANCE_MAX: 0.65,               // 拮抗圏の上限確率
   BALANCE_CHECK_MAX_CONF: 0.75,    // 境界付近でバランス確認質問を追加出題する上限確信度
   BOTH_POLES_THRESHOLD: 0.50,      // 両極エピソード・使い分けありとみなす noul しきい値
-  BAL_SWITCH_THRESHOLD: 0.55,      // 使い分け型寄りとみなす bal_switch noul しきい値
+  BAL_SWITCH_THRESHOLD: 0.55,      // 使い分け型(X)と未分化型(Y)を分ける bal_switch noul しきい値
   BIG5_SUFF_THRESHOLD: 0.30,       // ビッグファイブ材料十分とみなす noul しきい値
   INJECTION_THRESHOLD: 0.80,       // プロンプトインジェクション検知しきい値
 

@@ -297,23 +297,44 @@ function buildFinalScoreQuestions_(evaluation) {
     }
   };
 
-  // バランス候補軸のみ bal_switch_* を追加する
+  // バランス候補軸のみ bal_switch_* を追加する（X=使い分け / Y=未分化の切り分け用）
   var balMap = [
-    { axis: 'E/I', key: 'bal_switch_ei' },
-    { axis: 'S/N', key: 'bal_switch_sn' },
-    { axis: 'T/F', key: 'bal_switch_tf' },
-    { axis: 'J/P', key: 'bal_switch_jp' }
+    {
+      axis: 'E/I',
+      key: 'bal_switch_ei',
+      instructions: 'E/I 軸について、相手・場・仕事と私生活など、状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）',
+      trueDesc: '状況・場面・相手に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。'
+    },
+    {
+      axis: 'S/N',
+      key: 'bal_switch_sn',
+      instructions: 'S/N 軸について、フェーズや役割・状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）',
+      trueDesc: '状況・フェーズ・目的に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。'
+    },
+    {
+      axis: 'T/F',
+      key: 'bal_switch_tf',
+      instructions: 'T/F 軸について、相手・関係性・場面（仕事と私生活など）に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）',
+      trueDesc: '相手や場面に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。'
+    },
+    {
+      axis: 'J/P',
+      key: 'bal_switch_jp',
+      instructions: 'J/P 軸について、重要度・仕事と休日など、状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）',
+      trueDesc: '重要度や場面に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。'
+    }
   ];
   for (var i = 0; i < balMap.length; i++) {
-    var m = evaluation.mbti[balMap[i].axis];
+    var item = balMap[i];
+    var m = evaluation.mbti[item.axis];
     var inBand = m.p1Prob >= APP_CONFIG.BALANCE_MIN && m.p1Prob <= APP_CONFIG.BALANCE_MAX;
     if (m.state === 'balanced' || m.state === 'needs_balance_check' || (inBand && m.bothPoles >= APP_CONFIG.BOTH_POLES_THRESHOLD)) {
-      q[balMap[i].key] = {
+      q[item.key] = {
         type: 'noul',
-        instructions: balMap[i].axis + ' 軸について、場面に応じた切り替えパターンと「どちらが素で楽か」という楽さの非対称性（使い分け型）が読み取れますか？',
+        instructions: item.instructions,
         criteria: {
-          true_description: '場面による切り替えや楽さの非対称性が明確（使い分け型寄り）。',
-          false_description: '非対称性が薄く流動的（模索型寄り）、または材料不足。'
+          true_description: item.trueDesc,
+          false_description: '使い分けの基準が薄く両方混在・揺らいでいる（未分化 Y）、または材料不足。'
         }
       };
     }
@@ -363,6 +384,7 @@ function interpretDecisionAnswers_(a, qaList) {
       state = 'needs_balance_check';
     }
 
+    var balLetter = balSwitch >= APP_CONFIG.BAL_SWITCH_THRESHOLD ? 'X' : 'Y';
     mbti[def.axis] = {
       axis: def.axis,
       choice: d.choice,
@@ -378,9 +400,9 @@ function interpretDecisionAnswers_(a, qaList) {
       askedCount: stats.count,
       balAsked: stats.balAsked,
       editedOrCustomCount: stats.editedOrCustomCount,
-      letter: state === 'balanced' ? 'X' : d.choice,
+      letter: state === 'balanced' ? balLetter : d.choice,
       clarity: state === 'balanced' ? 'バランス' : (d.confidence >= APP_CONFIG.CLEAR_CONFIDENCE_THRESHOLD ? 'はっきり' : 'やや'),
-      balanceSubtype: state === 'balanced' ? (balSwitch >= APP_CONFIG.BAL_SWITCH_THRESHOLD ? '使い分け型寄り' : '模索型寄り') : null
+      balanceSubtype: state === 'balanced' ? (balLetter === 'X' ? '使い分け' : '未分化') : null
     };
   }
 
@@ -446,9 +468,20 @@ function mergeFinalScores_(evaluation, finalAnswers) {
   for (var j = 0; j < balMap.length; j++) {
     var b = balMap[j];
     if (finalAnswers[b.key]) {
-      evaluation.mbti[b.axis].balSwitch = finalAnswers[b.key].noul;
+      var ax = evaluation.mbti[b.axis];
+      ax.balSwitch = finalAnswers[b.key].noul;
+      if (ax.state === 'balanced') {
+        var balLetter = ax.balSwitch >= APP_CONFIG.BAL_SWITCH_THRESHOLD ? 'X' : 'Y';
+        ax.letter = balLetter;
+        ax.balanceSubtype = balLetter === 'X' ? '使い分け' : '未分化';
+      }
     }
   }
+  evaluation.mbtiType =
+    evaluation.mbti['E/I'].letter +
+    evaluation.mbti['S/N'].letter +
+    evaluation.mbti['T/F'].letter +
+    evaluation.mbti['J/P'].letter;
 }
 
 /**
@@ -568,10 +601,11 @@ function finalizeMbtiType_(evaluation) {
     if (ax.state === 'needs_balance_check' || ax.state === 'undecided') {
       var inBand = (ax.p1Prob >= APP_CONFIG.BALANCE_MIN && ax.p1Prob <= APP_CONFIG.BALANCE_MAX);
       if (inBand && ax.bothPoles >= APP_CONFIG.BOTH_POLES_THRESHOLD) {
+        var finalBalLetter = ax.balSwitch >= APP_CONFIG.BAL_SWITCH_THRESHOLD ? 'X' : 'Y';
         ax.state = 'balanced';
-        ax.letter = 'X';
+        ax.letter = finalBalLetter;
         ax.clarity = 'バランス';
-        ax.balanceSubtype = ax.balSwitch >= APP_CONFIG.BAL_SWITCH_THRESHOLD ? '使い分け型寄り' : '模索型寄り';
+        ax.balanceSubtype = finalBalLetter === 'X' ? '使い分け' : '未分化';
       } else {
         ax.state = 'decided';
         ax.letter = ax.choice;

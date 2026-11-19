@@ -112,10 +112,34 @@ def build_decision_questions():
         },
         "bal_switch_ei": {
             "type": "noul",
-            "instructions": "E/I 軸について、場面に応じた切り替えパターンと「どちらが素で楽か」という楽さの非対称性（使い分け型）が読み取れますか？",
+            "instructions": "E/I 軸について、相手・場・仕事と私生活など、状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）",
             "criteria": {
-                "true_description": "場面による切り替えや楽さの非対称性が明確（使い分け型寄り）。",
-                "false_description": "非対称性が薄く流動的（模索型寄り）、または材料不足。",
+                "true_description": "状況・場面・相手に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。",
+                "false_description": "使い分けの基準が薄く両方混在・揺らいでいる（未分化 Y）、または材料不足。",
+            },
+        },
+        "bal_switch_sn": {
+            "type": "noul",
+            "instructions": "S/N 軸について、フェーズや役割・状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）",
+            "criteria": {
+                "true_description": "状況・フェーズ・目的に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。",
+                "false_description": "使い分けの基準が薄く両方混在・揺らいでいる（未分化 Y）、または材料不足。",
+            },
+        },
+        "bal_switch_tf": {
+            "type": "noul",
+            "instructions": "T/F 軸について、相手・関係性・場面（仕事と私生活など）に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）",
+            "criteria": {
+                "true_description": "相手や場面に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。",
+                "false_description": "使い分けの基準が薄く両方混在・揺らいでいる（未分化 Y）、または材料不足。",
+            },
+        },
+        "bal_switch_jp": {
+            "type": "noul",
+            "instructions": "J/P 軸について、重要度・仕事と休日など、状況に応じた明確な使い分け・切り替え（X）が読み取れますか？（両方混在して定まらない未分化状態は false）",
+            "criteria": {
+                "true_description": "重要度や場面に応じた使い分けや切り替えパターンが明確である（使い分け型 X）。",
+                "false_description": "使い分けの基準が薄く両方混在・揺らいでいる（未分化 Y）、または材料不足。",
             },
         },
         "big5_suff_e": {
@@ -279,17 +303,26 @@ def main():
         usage = res.get("usage", {})
         ans = res.get("answers", {})
         print(f"⏱ {sec*1000:.0f} ms | in_tokens={usage.get('total_input_tokens')} | out_tokens={usage.get('total_output_tokens', 0)}")
-        for label, key, pole_key in [
-            ("E/I", "mbti_ei", "both_poles_ei"),
-            ("S/N", "mbti_sn", "both_poles_sn"),
-            ("T/F", "mbti_tf", "both_poles_tf"),
-            ("J/P", "mbti_jp", "both_poles_jp"),
+        letters = []
+        for label, key, pole_key, bal_key in [
+            ("E/I", "mbti_ei", "both_poles_ei", "bal_switch_ei"),
+            ("S/N", "mbti_sn", "both_poles_sn", "bal_switch_sn"),
+            ("T/F", "mbti_tf", "both_poles_tf", "bal_switch_tf"),
+            ("J/P", "mbti_jp", "both_poles_jp", "bal_switch_jp"),
         ]:
             d = ans[key]
             p = ans[pole_key]["noul"]
+            bs = ans[bal_key]["noul"]
             probs = {k: round(v, 3) for k, v in d["probabilities"].items()}
-            print(f"  {label}: choice={d['choice']} (conf={d['confidence']:.3f}, probs={probs}) | both_poles={p:.3f}")
-        print(f"  bal_switch_ei={ans['bal_switch_ei']['noul']:.3f} | injection={ans['prompt_injection']['noul']:.3f}")
+            p1_prob = list(d["probabilities"].values())[0]
+            in_band = 0.35 <= p1_prob <= 0.65
+            if in_band and p >= 0.50:
+                letter = "X" if bs >= 0.55 else "Y"
+            else:
+                letter = d["choice"]
+            letters.append(letter)
+            print(f"  {label}: {letter} | choice={d['choice']} (conf={d['confidence']:.3f}, probs={probs}) | both_poles={p:.3f} | bal_switch={bs:.3f}")
+        print(f"  => 判定結果: {''.join(letters)} | injection={ans['prompt_injection']['noul']:.3f}")
 
 
 if __name__ == "__main__":
