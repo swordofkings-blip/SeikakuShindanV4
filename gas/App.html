@@ -576,7 +576,7 @@
       <div id="gen-progress-pct" style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">AI生成モデルと通信中…（0秒）</div>
 
       <div id="gen-status-text" style="font-size:0.98rem; font-weight:600; margin-bottom:4px;">回答エピソードを照合しています…</div>
-      <div style="font-size:0.83rem; color:var(--muted);">素の自分と外向きの顔の二層構造・詳細ファセットを分析中（約15〜25秒）</div>
+      <div style="font-size:0.83rem; color:var(--muted);">素の自分と外向きの顔の二層構造・詳細ファセットを分析中（目安 60秒前後）</div>
     </div>
 
     <!-- 結果画面 -->
@@ -952,12 +952,12 @@
         'ビッグファイブ5因子と詳細ファセットを分析しています…',
         'あなた専用レポートの文章を整えています…'
       ];
-      updateGeneratingStepper_(1, 'AI生成モデルと通信中…（0秒 / 目安 15〜30秒）', phases[0]);
+      updateGeneratingStepper_(1, 'AI生成モデルと通信中…（0秒 / 目安 60秒前後）', phases[0]);
       state.genTimer = setInterval(function() {
         elapsed += 1;
-        var stepIdx = elapsed < 4 ? 1 : (elapsed < 10 ? 2 : 3);
-        var phaseIdx = Math.min(phases.length - 1, Math.floor(elapsed / 5));
-        var subText = 'AI生成モデルと通信中…（' + elapsed + '秒経過 / 目安 15〜30秒）';
+        var stepIdx = elapsed < 12 ? 1 : (elapsed < 28 ? 2 : 3);
+        var phaseIdx = Math.min(phases.length - 1, Math.floor(elapsed / 12));
+        var subText = 'AI生成モデルと通信中…（' + elapsed + '秒経過 / 目安 60秒前後）';
         updateGeneratingStepper_(stepIdx, subText, phases[phaseIdx]);
       }, 1000);
 
