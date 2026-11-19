@@ -1113,6 +1113,18 @@
       }
     }
 
+    function fillFittedText_(ctx, text, x, y, maxWidth, baseSize, minSize, isBold) {
+      if (!text) return;
+      var size = baseSize;
+      var prefix = isBold ? 'bold ' : '';
+      ctx.font = prefix + size + 'px sans-serif';
+      while (size > minSize && ctx.measureText(text).width > maxWidth) {
+        size -= 1;
+        ctx.font = prefix + size + 'px sans-serif';
+      }
+      ctx.fillText(text, x, y, maxWidth);
+    }
+
     function drawShareCard(ev, rep) {
       var canvas = document.getElementById('share-canvas');
       var ctx = canvas.getContext('2d');
@@ -1135,12 +1147,10 @@
       ctx.fillText(ev.mbtiType, 64, 215);
 
       ctx.fillStyle = '#f472b6';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(rep.typeLabel || '', 64, 278);
+      fillFittedText_(ctx, rep.typeLabel || '', 64, 278, 1064, 36, 20, true);
 
       ctx.fillStyle = '#d1d5db';
-      ctx.font = '26px sans-serif';
-      ctx.fillText(rep.catchcopy || '', 64, 334);
+      fillFittedText_(ctx, rep.catchcopy || '', 64, 334, 1064, 26, 18, false);
 
       // Big5 ミニバー
       var codes = ['E', 'O', 'C', 'A', 'N'];

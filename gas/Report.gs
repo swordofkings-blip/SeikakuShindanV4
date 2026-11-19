@@ -307,10 +307,10 @@ function resolveTypeLabel_(evaluation) {
   var tf = evaluation.mbti['T/F'].letter;
   var jp = evaluation.mbti['J/P'].letter;
 
-  parts.push(ei === 'X' ? '両面エネルギー切替' : (ei === 'Y' ? '内省×外向探索中' : (ei === 'E' ? '外向' : '内省')));
-  parts.push(sn === 'X' ? '現実×発想切替' : (sn === 'Y' ? '現実×発想探索中' : (sn === 'S' ? '現実派' : '直観派')));
-  parts.push(tf === 'X' ? '論理×共感切替' : (tf === 'Y' ? '論理×共感探索中' : (tf === 'T' ? '論理型' : '共感型')));
-  parts.push(jp === 'X' ? '計画×柔軟切替' : (jp === 'Y' ? '計画×柔軟探索中' : (jp === 'J' ? '計画派' : '柔軟派')));
+  parts.push(ei === 'X' ? '両面切替' : (ei === 'Y' ? '内外探索' : (ei === 'E' ? '外向' : '内省')));
+  parts.push(sn === 'X' ? '現実×発想' : (sn === 'Y' ? '視点探索' : (sn === 'S' ? '現実派' : '直観派')));
+  parts.push(tf === 'X' ? '論理×共感' : (tf === 'Y' ? '判断探索' : (tf === 'T' ? '論理型' : '共感型')));
+  parts.push(jp === 'X' ? '計画×柔軟' : (jp === 'Y' ? '歩調探索' : (jp === 'J' ? '計画派' : '柔軟派')));
 
   return parts.join('・') + 'タイプ';
 }
